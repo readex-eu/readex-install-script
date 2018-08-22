@@ -82,6 +82,7 @@ DOWNLOAD_FLEX=https://netcologne.dl.sourceforge.net/project/flex/flex-2.5.39.tar
 DOWNLOAD_BISON=https://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
 DOWNLOAD_CEREAL=https://github.com/USCiLab/cereal/archive/v1.2.1.tar.gz
 DOWNLOAD_PEEP=https://github.com/score-p/scorep_plugin_x86_energy.git
+DOWNLOAD_MODULE=https://netcologne.dl.sourceforge.net/projects/modules/files/Modules/modules-4.1.4/modules-4.1.4.tar.gz
 
 ARCHIVE_FILE_SCOREP=${DOWNLOAD_SCOREP##*/}
 ARCHIVE_FILE_PERISCOPE=${DOWNLOAD_PERISCOPE##*/}
@@ -97,6 +98,7 @@ ARCHIVE_FILE_FLEX=${DOWNLOAD_FLEX##*/}
 ARCHIVE_FILE_BISON=${DOWNLOAD_BISON##*/}
 ARCHIVE_FILE_PYTHON=${DOWNLOAD_PYTHON##*/}
 ARCHIVE_FILE_CEREAL=${DOWNLOAD_CEREAL##*/}
+ARCHIVE_FILE_MODULE=${DOWNLOAD_MODULE##*/}
 
 
 DIR_SCOREP=${ARCHIVE_FILE_SCOREP%.tar.gz}
@@ -114,6 +116,7 @@ DIR_FLEX=${ARCHIVE_FILE_FLEX%.tar.gz}
 DIR_PYTHON=cpython-3.7.0
 DIR_CEREAL=cereal-1.2.1
 DIR_BISON=${ARCHIVE_FILE_BISON%.tar.gz}
+DIR_MODULE=${ARCHIVE_FILE_MODULE%.tar.gz}
 
 GCC_VERSION_A=6.3.0
 GCC_VERSION_B=7.1.0
@@ -217,10 +220,11 @@ installCmake() {
 	rm -rf $DIR_CMAKE
 	tar -xzf $ARCHIVE_FILE_CMAKE
 	cd DIR_CMAKE
-	./bootstrap && make && make install
+	./bootstrap --prefix=$INSTALLATION_PATH_REQUIREMENTS/cmake && make && make install
 	if [ $? != 0 ]; then
 		exit 1;
 	fi
+	export PATH=$INSTALLATION_PATH_REQUIREMENTS/cmake/bin:$PATH
 	cd .. 
 }
 
@@ -383,6 +387,52 @@ installPapi() {
 
 installLibreadline() {
 	sudo apt-get install ${PACKAGE_LIBREADLINE} -y 
+}
+
+installModule() {
+		TCL_VERSION_INSTALLED=$(ls /usr/lib/x86_64-linux-gnu | grep libtcl | head -n 1)
+
+		if [[ ! -n $TCL_VERSION_INSTALLED ]]; then
+			sudo apt-get install tcl-devel -y
+		fi
+		wget -c ${DOWNLOAD_MODULE}
+		rm -rf $DIR_MODULE
+		tar -xzf $ARCHIVE_FILE_MODULE
+		cd $DIR_MODULE
+		./configure --prefix=$INSTALLATION_PATH/Module --modulefilesdir=$INSTALLATION_PATH/modulefiles
+		make && make install
+		if [ $? != 0 ]; then
+			exit 1;
+		fi
+		. $INSTALLATION_PATH/Module/init/profile.sh
+		. $INSTALLATION_PATH/Module/init/profile.csh
+		sudo ln -s $INSTALLATION_PATH/Module/init/profile.sh /etc/profile.d/modules.sh
+		sudo ln -s $INSTALLATION_PATH/Module/init/profile.csh /etc/profile.d/modules.csh
+		buildModulefile
+		mkdir $INSTALLATION_PATH/modulefiles/Readex
+		mv ${MPI}_${COMPILER_PATH} $INSTALLATION_PATH/modulefiles/Readex/${MPI}_${COMPILER_PATH}
+		cd ../
+}
+
+buildModulefile() {
+	touch ${MPI}_$COMPILER_PATH
+	echo "#%Module1.0######################################################################" >> Readex
+	echo "## Readex modulefile" >> Readex
+	echo "proc ModulesHelp { } {" >> Readex
+    echo "	puts stderr \"\\tThe Dot Module\\n\"" >> Readex
+    echo "	puts stderr \"\\tThis module adds the current working directory to your path.\"" >> Readex
+	echo "}" >> Readex
+	echo "module-whatis   \"adds all necessary directories to your PATH and LD_LIBRARY_PATH environment variable\" " >> Readex
+	echo "append-path     PATH            $INSTALLATION_PATH_SCOREP/bin" >> Readex
+	echo "append-path     PATH            $INSTALLATION_PATH_PERISCOPE/bin" >> Readex 
+	echo "append-path     PATH 	          $INSTALLATION_PATH_RRL/bin" >> Readex 
+	echo "append-path     PATH            $INSTALLATION_PATH_ATPS/bin" >> Readex
+	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_SCOREP/lib" >> Readex
+	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_PERISCOPE/lib" >> Readex
+	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_RRL/lib" >> Readex 
+	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_PCPS/lib" >> Readex
+	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_ATPS/lib" >> Readex
+	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_CLUSTER_PREDICTION/lib" >> Readex
 }
 
 
@@ -784,14 +834,14 @@ case $? in
 esac
 
 
-INSTALLATION_PATH_SCOREP=$INSTALLATION_PATH/scorep/scorep_readex_$MPI_$COMPILER_PATH
-INSTALLATION_PATH_PERISCOPE=$INSTALLATION_PATH/ptf-readex/ptf_readex_$MPI_$COMPILER_PATH
+INSTALLATION_PATH_SCOREP=$INSTALLATION_PATH/scorep/scorep_readex_${MPI}_$COMPILER_PATH
+INSTALLATION_PATH_PERISCOPE=$INSTALLATION_PATH/ptf-readex/ptf_readex_${MPI}_$COMPILER_PATH
 INSTALLATION_PATH_SCOREP_DEV=$INSTALLATION_PATH/scorep-dev
-INSTALLATION_PATH_RRL=$INSTALLATION_PATH/readex-rrl/rrl_readex_$MPI_$COMPILER_PATH
+INSTALLATION_PATH_RRL=$INSTALLATION_PATH/readex-rrl/rrl_readex_${MPI}_$COMPILER_PATH
 INSTALLATION_PATH_PEEP=$INSTALLATION_PATH/scorep_plugin_x86_energy
-INSTALLATION_PATH_PCPS=$INSTALLATION_PATH/parameter_control_plugins/pcp_readex_$MPI_$COMPILER_PATH
-INSTALLATION_PATH_ATPS=$INSTALLATION_PATH/readex-atp/atp_readex_$MPI_$COMPILER_PATH
-INSTALLATION_PATH_CLUSTER_PREDICTION=$INSTALLATION_PATH/cluster_prediction/cluster_prediction_readex_$MPI_$COMPILER_PATH
+INSTALLATION_PATH_PCPS=$INSTALLATION_PATH/parameter_control_plugins/pcp_readex_${MPI}_$COMPILER_PATH
+INSTALLATION_PATH_ATPS=$INSTALLATION_PATH/readex-atp/atp_readex_${MPI}_$COMPILER_PATH
+INSTALLATION_PATH_CLUSTER_PREDICTION=$INSTALLATION_PATH/cluster_prediction/cluster_prediction_readex_${MPI}_$COMPILER_PATH
 
 DECISION=
 
@@ -1113,11 +1163,41 @@ if [ $? != 0 ]; then
 fi
 
 cd ../..
-echo "export your \$PATH and \$LD_LIBRARY_PATH variable to use the READEX tool suite:"
-echo "export PATH=$INSTALLATION_PATH_SCOREP/bin:$INSTALLATION_PATH_PERISCOPE/bin:$INSTALLATION_PATH_RRL/bin:$INSTALLATION_PATH_ATPS/bin:\$PATH"
-echo "export LD_LIBRARY_PATH=$INSTALLATION_PATH_SCOREP/lib:$INSTALLATION_PATH_PERISCOPE/lib:$INSTALLATION_PATH_RRL/lib:$INSTALLATION_PATH_PCPS/lib:$INSTALLATION_PATH_ATPS/lib:$INSTALLATION_PATH_CLUSTER_PREDICTION/lib:\$LD_LIBRARY_PATH"
-echo "To use Processor Energy Event Plugin: "
-echo "export LD_LIBRARY_PATH=$INSTALLATION_PATH_PEEP/lib:\$LD_LIBRARY_PATH"
+
+DECISION=
+
+while [ "$DECISION" != "n" ] && [ "$DECISION" != "no" ] && [ "$DECISION" != "y" ] && [ "$DECISION" != "yes" ]; do
+	echo "Do you want to use Environment Modules to get easy access to the Readex Tool Suite?(yes|no)"
+	read DECISION
+
+	if [ "$DECISION" = "n" ] || [ "$DECISION" = "no" ];then
+		echo "To use the Readex Tool Suite run following commands or add them to your shell configuration file, to append your \$PATH and \$LD_LIBRARY_PATH variable "
+		echo "export PATH=$INSTALLATION_PATH_SCOREP/bin:$INSTALLATION_PATH_PERISCOPE/bin:$INSTALLATION_PATH_RRL/bin:$INSTALLATION_PATH_ATPS/bin:\$PATH"
+		echo "export LD_LIBRARY_PATH=$INSTALLATION_PATH_SCOREP/lib:$INSTALLATION_PATH_PERISCOPE/lib:$INSTALLATION_PATH_RRL/lib:$INSTALLATION_PATH_PCPS/lib:$INSTALLATION_PATH_ATPS/lib:$INSTALLATION_PATH_CLUSTER_PREDICTION/lib:\$LD_LIBRARY_PATH"
+		echo "To use Processor Energy Event Plugin: "
+		echo "export LD_LIBRARY_PATH=$INSTALLATION_PATH_PEEP/lib:\$LD_LIBRARY_PATH"
+		break
+	fi
+
+	if [ "$DECISION" = "y" ] || [ "$DECISION" = "yes" ];then
+		DECISION_INSTALL=
+		while [ "$DECISION_INSTALL" != "n" ] && [ "$DECISION_INSTALL" != "no" ] && [ "$DECISION_INSTALL" != "y" ] && [ "$DECISION_INSTALL" != "yes" ]; do
+			echo "Do you have Environment Modules already installed and configured? (yes|no)"
+			read DECISION_INSTALL
+			if [ "$DECISION_INSTALL" = "y" ] || [ "$DECISION_INSTALL" = "yes" ];then
+				echo "A modulefile in the current work directory is provided."
+				break
+			fi
+			if [ "$DECISION_INSTALL" = "n" ] || [ "$DECISION_INSTALL" = "no" ];then
+				echo "Installing Environment variables now."
+				installModule
+				break
+			fi
+		done
+	fi
+		break
+done
+
 
 DECISION=
 
@@ -1144,6 +1224,7 @@ while [ "$DECISION" != "n" ] && [ "$DECISION" != "no" ] && [ "$DECISION" != "y" 
 		rm -f $ARCHIVE_FILE_CEREAL
 		rm -f $ARCHIVE_FILE_FLEX
 		rm -f $ARCHIVE_FILE_PYTHON
+		rm -f $ARCHIVE_FILE_MODULE
 
 
 		rm -rf $DIR_SCOREP
@@ -1162,6 +1243,7 @@ while [ "$DECISION" != "n" ] && [ "$DECISION" != "no" ] && [ "$DECISION" != "y" 
 		rm -rf $DIR_PYTHON
 		rm -rf $DIR_PEEP
 		rm -rf x86_adapt
+		rm -rf $DIR_MODULE
 	fi
 
 done

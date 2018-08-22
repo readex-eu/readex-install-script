@@ -1,4 +1,4 @@
-# readex-install-script
+# Readex-install
 
 A script for downloading and installing the software components of the READEX Tool Suite.
 
@@ -18,7 +18,22 @@ The installation of x86_adapt is optional, so you can decide if it should be ins
 Do you want to install x86_adapt? (yes|no)
 ```
 
-After the script ran successfully, you can clean your work directory or keep the archive files and directories.
+After the installation, you can install Environment Modules to get easy access to the Readex Tool Suite.
+```
+Do you want to use Environment Modules to get easy access to the Readex Tool Suite? (yes|no)
+
+```
+In case, you want to use Modules, you can decide if it should be installed or if you have already installed and configured it.
+```
+Do you have Environment Modules already installed and configured? (yes|no)
+```
+If you have a functional version, a modulefile is provided, which you can place in your modulefilesdir.
+In the other case, the script will automatically install Environment Modules in the given installation path and configure it. 
+So you can use the Readex Tool Suite with `module load Readex\<mpi_version>_<compiler>`.
+
+If you don't want to use Modules at all, you will get commands to append your $PATH and $LD_LIBRARY_PATH variable, so you can use the Readex Tool Suite.
+
+After the script finished successfully, you can clean your work directory or keep the archive files and directories.
 ```
 Do you want to clean the current directory? (yes|no)
 ```
