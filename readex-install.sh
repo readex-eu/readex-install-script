@@ -40,7 +40,7 @@ PAPI_LIB=
 PDT=
 
 # <slurm|superMUC|interactive>
-STARTER=
+STARTER=interactive
 
 # path to ACE include
 ACE_INCLUDE=
@@ -62,7 +62,7 @@ if [[ -z $1 ]]; then
 	INSTALLATION_PATH=/opt
 else
 	shopt -s extglob
-	INSTALLATION_PATH=${INSTALLATION_PATH%%+(/)}
+	INSTALLATION_PATH=${1%%+(/)}
 fi
 
 DATE=`date '+%Y-%m-%d'`
@@ -145,6 +145,42 @@ PACKAGE_LIBREADLINE=libreadline-dev
 PACKAGE_LUA=liblua5.3-dev
 PACKAGE_MAKEINFO=texinfo
 
+#############################################################
+#                                                           #
+#                                                           #
+#                      FOLDER CREATE                        #
+#                                                           #
+#                                                           #
+#############################################################
+
+echo "Creating folders ..."
+
+if [ ! -d "$INSTALLATION_PATH" ]
+then
+	echo "... $INSTALLATION_PATH"
+	mkdir $INSTALLATION_PATH
+	status=$?
+	if [ $status -ne 0 ]
+	then
+		echo "Could not create folder"
+		exit $status
+	fi
+fi
+
+INSTALLATION_PATH_REQUIREMENTS=$INSTALLATION_PATH/requirements
+
+if [ ! -d "$INSTALLATION_PATH_REQUIREMENTS" ]
+then
+	echo "... $INSTALLATION_PATH_REQUIREMENTS"
+	mkdir $INSTALLATION_PATH_REQUIREMENTS
+	status=$?
+	if [ $status -ne 0 ]
+	then
+		echo "Could not create folder"
+		exit $status
+	fi
+fi
+echo "...done"
 
 #############################################################
 #                                                           #
@@ -219,7 +255,7 @@ installCmake() {
 	wget -c ${DOWNLOAD_CMAKE}
 	rm -rf $DIR_CMAKE
 	tar -xzf $ARCHIVE_FILE_CMAKE
-	cd DIR_CMAKE
+	cd $DIR_CMAKE
 	./bootstrap --prefix=$INSTALLATION_PATH_REQUIREMENTS/cmake && make && make install
 	if [ $? != 0 ]; then
 		exit 1;
@@ -292,10 +328,15 @@ installCereal() {
 			rm -rf $DIR_CEREAL
 			tar -xzf $ARCHIVE_FILE_CEREAL
 			cd $DIR_CEREAL
-			cp -r include/ $INSTALLATION_PATH_REQUIREMENTS/cereal-1.2.1
-			if [ $? != 0 ]; then
-				exit 1;
-			fi
+			mkdir build
+			cd build
+			CXXFLAGS="-Wno-implicit-fallthrough" cmake -DCMAKE_INSTALL_PREFIX=$INSTALLATION_PATH_REQUIREMENTS/cereal-1.2.1 ..
+#			cp -r include/ $INSTALLATION_PATH_REQUIREMENTS/cereal-1.2.1
+#			if [ $? != 0 ]; then
+#				exit 1;
+#			fi
+                        make
+                        make install
 			cd ../..
 			CEREAL_INCLUDE=$INSTALLATION_PATH_REQUIREMENTS/cereal-1.2.1/include
 			;;
@@ -540,15 +581,16 @@ elif [ -f /usr/include/cereal/cereal.hpp ]; then
 	[[ $CEREAL_VERSION_INSTALLED =~ ([0-9]+\.){2}[0-9]+ ]]
 	CEREAL_VERSION_INSTALLED="${BASH_REMATCH[0]}"
 else
-	echo "CEREAL $CEREAL_VERSION is required. Installing it now."
-	installCereal
-	CEREAL_VERSION_INSTALLED=$CEREAL_VERSION
+	CEREAL_VERSION_INSTALLED=0
 fi
+
+
 
 command -v cmake >/dev/null 2>&1 || { echo >&2 "[Error] CMake $CMAKE_VERSION or higher is required. Now installing the required version."; installCmake; }
 CMAKE_VERSION_INSTALLED=$(cmake --version) 
 [[ $CMAKE_VERSION_INSTALLED =~ ([0-9]+\.){2}[0-9]+ ]]
 CMAKE_VERSION_INSTALLED="${BASH_REMATCH[0]}"
+
 
 command -v python3 >/dev/null 2>&1 || { echo >&2 "[Error] Python $PYTHON_VERSION or higher is required. Please install it first. Aborting."; installPython; }
 PYTHON_VERSION_INSTALLED=$(python3 --version)
@@ -846,14 +888,14 @@ INSTALLATION_PATH_CLUSTER_PREDICTION=$INSTALLATION_PATH/cluster_prediction/clust
 DECISION=
 
 while [ "$DECISION" != "n" ] && [ "$DECISION" != "no" ] && [ "$DECISION" != "y" ] && [ "$DECISION" != "yes" ]; do
-	echo "Do you want to continue with the Installation of READEX Tool Suite? (yes|no)"
+	echo "Do you want to continue with the Installation of READEX Tool Suite? (y|n)"
 	read DECISION
 
-	if [ "$DECISION" = "n" ] || [ "$DECISION" = "no" ]; then
+	if [ "$DECISION" = "n" ]; then
 		exit 1;
 	fi
 
-	if [ "$DECISION" = "y" ] || [ "$DECISION" = "yes" ]; then
+	if [ "$DECISION" = "y" ]; then
 		break
 	fi
 
@@ -1016,15 +1058,15 @@ cd ../..
 DECISION_X86_ADAPT=
 
 while [ "$DECISION_X86_ADAPT" != "n" ] && [ "$DECISION_X86_ADAPT" != "no" ] && [ "$DECISION_X86_ADAPT" != "y" ] && [ "$DECISION_X86_ADAPT" != "yes" ]; do
-	echo "Do you want to install x86_adapt? (yes|no)"
+	echo "Do you want to install x86_adapt? (y|n)"
 	read DECISION_X86_ADAPT
 
-	if [ "$DECISION_X86_ADAPT" = "n" ] || [ "$DECISION_X86_ADAPT" = "no" ]; then
+	if [ "$DECISION_X86_ADAPT" = "n" ]; then
 		echo "skipping x86_adapt...."
 		break;
 	fi
 
-	if [ "$DECISION_X86_ADAPT" = "y" ] || [ "$DECISION_X86_ADAPT" = "yes" ]; then
+	if [ "$DECISION_X86_ADAPT" = "y" ]; then
 		echo "[ 7/16] Downloading x86_adapt"
 		rm -rf x86_adapt
 		git clone https://github.com/tud-zih-energy/x86_adapt.git
@@ -1088,7 +1130,7 @@ echo "[12/18] Installing Processor Energy Event Plugin"
 cd $DIR_PEEP
 mkdir build 
 cd build
-if [ "$DECISION_X86_ADAPT" = "y" ] || [ "$DECISION_X86_ADAPT" = "yes" ]; then
+if [ "$DECISION_X86_ADAPT" = "y" ]; then
 	cmake -DCMAKE_INSTALL_PREFIX=$INSTALLATION_PATH_PEEP -DX86_ADAPT_LIBRARIES=$INSTALLATION_PATH/x86_adapt/lib .. && make && make install 
 else
 	cmake -DCMAKE_INSTALL_PREFIX=$INSTALLATION_PATH_PEEP .. && make && make install 
@@ -1167,10 +1209,10 @@ cd ../..
 DECISION=
 
 while [ "$DECISION" != "n" ] && [ "$DECISION" != "no" ] && [ "$DECISION" != "y" ] && [ "$DECISION" != "yes" ]; do
-	echo "Do you want to use Environment Modules to get easy access to the Readex Tool Suite?(yes|no)"
+	echo "Do you want to use Environment Modules to get easy access to the Readex Tool Suite?(y|n)"
 	read DECISION
 
-	if [ "$DECISION" = "n" ] || [ "$DECISION" = "no" ];then
+	if [ "$DECISION" = "n" ];then
 		echo "To use the Readex Tool Suite run following commands or add them to your shell configuration file, to append your \$PATH and \$LD_LIBRARY_PATH variable "
 		echo "export PATH=$INSTALLATION_PATH_SCOREP/bin:$INSTALLATION_PATH_PERISCOPE/bin:$INSTALLATION_PATH_RRL/bin:$INSTALLATION_PATH_ATPS/bin:\$PATH"
 		echo "export LD_LIBRARY_PATH=$INSTALLATION_PATH_SCOREP/lib:$INSTALLATION_PATH_PERISCOPE/lib:$INSTALLATION_PATH_RRL/lib:$INSTALLATION_PATH_PCPS/lib:$INSTALLATION_PATH_ATPS/lib:$INSTALLATION_PATH_CLUSTER_PREDICTION/lib:\$LD_LIBRARY_PATH"
@@ -1179,7 +1221,7 @@ while [ "$DECISION" != "n" ] && [ "$DECISION" != "no" ] && [ "$DECISION" != "y" 
 		break
 	fi
 
-	if [ "$DECISION" = "y" ] || [ "$DECISION" = "yes" ];then
+	if [ "$DECISION" = "y" ];then
 		DECISION_INSTALL=
 		while [ "$DECISION_INSTALL" != "n" ] && [ "$DECISION_INSTALL" != "no" ] && [ "$DECISION_INSTALL" != "y" ] && [ "$DECISION_INSTALL" != "yes" ]; do
 			echo "Do you have Environment Modules already installed and configured? (yes|no)"
@@ -1201,15 +1243,15 @@ done
 
 DECISION=
 
-while [ "$DECISION" != "n" ] && [ "$DECISION" != "no" ] && [ "$DECISION" != "y" ] && [ "$DECISION" != "yes" ]; do
-	echo "Do you want to clean the current directory? (yes|no)"
+while [ "$DECISION" != "n" ] && [ "$DECISION" != "y" ]; do
+	echo "Do you want to clean the current directory? (y|n)"
 	read DECISION
 
-	if [ "$DECISION" = "n" ] || [ "$DECISION" = "no" ]; then
+	if [ "$DECISION" = "n"]; then
 		exit 1;
 	fi
 
-	if [ "$DECISION" = "y" ] || [ "$DECISION" = "yes" ]; then
+	if [ "$DECISION" = "y" ]; then
 		rm -f $ARCHIVE_FILE_SCOREP
 		rm -f $ARCHIVE_FILE_PERISCOPE
 		rm -f $ARCHIVE_FILE_SCOREP_DEV
