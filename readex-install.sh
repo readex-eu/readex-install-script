@@ -67,13 +67,13 @@ fi
 
 DATE=`date '+%Y-%m-%d'`
 
-DOWNLOAD_SCOREP=http://www.readex.eu/wp-content/uploads/2018/08/ScoreP_READEX.tar.gz
-DOWNLOAD_PERISCOPE=http://www.readex.eu/wp-content/uploads/2018/08/Periscope_READEX.tar.gz
+DOWNLOAD_SCOREP=http://www.readex.eu/wp-content/uploads/software/ScoreP.tar.gz
+DOWNLOAD_PERISCOPE=http://www.readex.eu/wp-content/uploads/software/PTF.tar.gz
 DOWNLOAD_SCOREP_DEV=http://www.readex.eu/wp-content/uploads/2018/04/scorep-dev-06.tar.gz
-DOWNLOAD_RRL=http://www.readex.eu/wp-content/uploads/2018/08/RRL.tar.gz
-DOWNLOAD_PCPS=http://www.readex.eu/wp-content/uploads/2018/08/PCPs.tar.gz
-DOWNLOAD_ATPS=http://www.readex.eu/wp-content/uploads/2018/08/ATP.tar.gz
-DOWNLOAD_CLUSTER_PREDICTION=http://www.readex.eu/wp-content/uploads/2018/08/Cluster_Prediction.tar.gz
+DOWNLOAD_RRL=http://www.readex.eu/wp-content/uploads/software/RRL.tar.gz
+DOWNLOAD_PCPS=http://www.readex.eu/wp-content/uploads/software/PCPs.tar.gz
+DOWNLOAD_ATPS=http://www.readex.eu/wp-content/uploads/software/ATP.tar.gz
+DOWNLOAD_CLUSTER_PREDICTION=http://www.readex.eu/wp-content/uploads/software/Cluster_Prediction.tar.gz
 DOWNLOAD_CMAKE=https://cmake.org/files/v3.11/cmake-3.11.4.tar.gz
 DOWNLOAD_BOOST=https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz
 DOWNLOAD_ACE=https://github.com/DOCGroup/ACE_TAO/releases/download/ACE%2BTAO-6_5_1/ACE.tar.gz
