@@ -415,19 +415,23 @@ installFlex() {
 }
 
 installLua() {
-	sudo apt-get install ${PACKAGE_LUA} -y
+	echo "To install liblua, execute \"sudo apt-get install ${PACKAGE_LUA} -y\""
+	exit 1
 }
 
 installMakeinfo() {
-	sudo apt-get install ${PACKAGE_MAKEINFO} -y
+	echo "To install makeinfo, execute \"sudo apt-get install ${PACKAGE_MAKEINFO} -y\""
+	exit 1
 }
 
 installPapi() {
-	sudo apt-get install ${PACKAGE_PAPI} -y 
+	echo "To install PAPI, execute \"sudo apt-get install ${PACKAGE_PAPI} -y \""
+	exit 1
 }
 
 installLibreadline() {
-	sudo apt-get install ${PACKAGE_LIBREADLINE} -y 
+	echo "To install libreadline, execute \"sudo apt-get install ${PACKAGE_LIBREADLINE} -y \""
+	exit 1
 }
 
 installModule() {
@@ -497,7 +501,7 @@ BISON_VERSION_INSTALLED=$(bison --version)
 BISON_VERSION_INSTALLED="${BASH_REMATCH[0]}"
 
 
-LUA_VERSION_INSTALLED=$(ls /usr/lib/x86_64-linux-gnu | grep liblua | head -n 1)
+LUA_VERSION_INSTALLED=$(dpkg --get-selections | grep -E liblua.\..-dev | cut -c 7-9)
 
 if [[ -n $LUA_VERSION_INSTALLED ]]; then
 	[[ $LUA_VERSION_INSTALLED =~ [0-9]+\.[0-9]+ ]]
@@ -1114,6 +1118,7 @@ cd ../..
 
 export PATH=$PATH:$INSTALLATION_PATH_RRL/bin
 export RRL_INC=$INSTALLATION_PATH_RRL/include
+export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$INSTALLATION_PATH_RRL/lib/cmake
 
 #############################################################
 #                                                           #
