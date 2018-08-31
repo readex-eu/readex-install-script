@@ -35,9 +35,9 @@ PAPI_INCLUDE=
 PAPI_LIB=
 
 # Specifies the path to the program database toolkit
-# (PDT) binaries, e.g., cparse.
+# (PDT) binaries, e.g., cparse., or "no" if not present 
 # <path to PDT bin>
-PDT=
+PDT=no
 
 # <slurm|superMUC|interactive>
 STARTER=interactive
