@@ -76,7 +76,7 @@ DOWNLOAD_ATPS=http://www.readex.eu/wp-content/uploads/software/ATP.tar.gz
 DOWNLOAD_CLUSTER_PREDICTION=http://www.readex.eu/wp-content/uploads/software/Cluster_Prediction.tar.gz
 DOWNLOAD_CMAKE=https://cmake.org/files/v3.11/cmake-3.11.4.tar.gz
 DOWNLOAD_BOOST=https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz
-DOWNLOAD_ACE=https://github.com/DOCGroup/ACE_TAO/releases/download/ACE%2BTAO-6_5_1/ACE.tar.gz
+DOWNLOAD_ACE=https://github.com/DOCGroup/ACE_TAO/releases/download/ACE%2BTAO-6_4_5/ACE.tar.gz
 DOWNLOAD_PYTHON=https://github.com/python/cpython/archive/v3.7.0.tar.gz
 DOWNLOAD_FLEX=https://netcologne.dl.sourceforge.net/project/flex/flex-2.5.39.tar.gz
 DOWNLOAD_BISON=https://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
@@ -127,7 +127,7 @@ INTEL_VERSION_B=2018.1.163
 BISON_VERSION=3.0.4
 PAPI_VERSION=5.5.1
 PYTHON_VERSION=3.6
-ACE_VERSION=6.5.0
+ACE_VERSION=6.4.5
 FLEX_VERSION=2.5.39
 BOOST_VERSION=1.65.1
 CEREAL_VERSION=1.2.1
@@ -304,7 +304,7 @@ installACE() {
 			export ACE_ROOT=$(pwd)
 			cp ace/config-linux.h ace/config.h
 			cp include/makeinclude/platform_linux.GNU include/makeinclude/platform_macros.GNU
-			echo "INSTALL_PREFIX=$INSTALLATION_PATH/ACE_wrappers" >> include/makeinclude/platform_macros.GNU
+			echo "INSTALL_PREFIX=$INSTALLATION_PATH_REQUIREMENTS/ACE_wrappers" >> include/makeinclude/platform_macros.GNU
 			make && make install 
 			if [ $? != 0 ]; then
 				exit 1;
