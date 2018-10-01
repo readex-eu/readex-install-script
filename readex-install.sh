@@ -913,13 +913,26 @@ done
 #                                                           #
 #############################################################
 
-echo "[ 1/18] Downloading Score-P"
+echo "[ 1/18] Downloading scorep-dev"
+wget -c $DOWNLOAD_SCOREP_DEV
+rm -rf $DIR_SCOREP_DEV
+tar -xzf $ARCHIVE_FILE_SCOREP_DEV
+
+echo "[ 2/18] Installing scorep-dev"
+cd $DIR_SCOREP_DEV
+./install-scorep-dev.06.sh --prefix=$INSTALLATION_PATH_SCOREP_DEV
+
+export PATH=$INSTALLATION_PATH_SCOREP_DEV/bin:$PATH
+export LD_LIBRARY_PATH=$INSTALLATION_PATH_SCOREP_DEV/lib:$LD_LIBRARY_PATH
+cd ..
+
+echo "[ 3/18] Downloading Score-P"
 
 wget -c $DOWNLOAD_SCOREP
 rm -rf $DIR_SCOREP
 tar -xzf $ARCHIVE_FILE_SCOREP
 
-echo "[ 2/18] Installing Score-P"
+echo "[ 4/18] Installing Score-P"
 
 cd $DIR_SCOREP
 mkdir build
@@ -973,28 +986,17 @@ export PATH=$INSTALLATION_PATH_SCOREP/bin:$PATH
 #                                                           #
 #############################################################
 
-echo "[ 3/18] Downloading Periscope"
+echo "[ 5/18] Downloading Periscope"
 
 cd ../..
 wget -c $DOWNLOAD_PERISCOPE
 rm -rf $DIR_PERISCOPE
 tar -xzf $ARCHIVE_FILE_PERISCOPE
 
-echo "[ 4/18] Downloading scorep-dev"
-wget -c $DOWNLOAD_SCOREP_DEV
-rm -rf $DIR_SCOREP_DEV
-tar -xzf $ARCHIVE_FILE_SCOREP_DEV
-
-echo "[ 5/18] Installing scorep-dev"
-cd $DIR_SCOREP_DEV
-./install-scorep-dev.06.sh --prefix=$INSTALLATION_PATH_SCOREP_DEV
-
-export PATH=$INSTALLATION_PATH_SCOREP_DEV/bin:$PATH
-export LD_LIBRARY_PATH=$INSTALLATION_PATH_SCOREP_DEV/lib:$LD_LIBRARY_PATH
 
 echo "[ 6/18] Installing Periscope"
 
-cd ../$DIR_PERISCOPE
+cd $DIR_PERISCOPE
 ./bootstrap
 mkdir build
 cd build
@@ -1129,7 +1131,7 @@ export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$INSTALLATION_PATH_RRL/lib/cmake
 #############################################################
 echo "[11/18] Downloading Processor Energy Event Plugin"
 rm -rf $DIR_PEEP
-git clone -b x86_energy_v_2 $DOWNLOAD_PEEP  
+git clone $DOWNLOAD_PEEP  
 
 echo "[12/18] Installing Processor Energy Event Plugin"
 cd $DIR_PEEP
