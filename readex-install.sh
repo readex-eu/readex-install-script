@@ -12,7 +12,7 @@ COMPILER=gcc
 # <bullxmpi|hp|ibmpoe|intel|intel2|intel3|intelpoe|lam|
 # mpibull2|mpich|mpich2|mpich3|openmpi|platform|scali|
 # sgimpt|sun>
-MPI=openmpi
+MPI=
 
 # If you want to build scorep with libcudart but do not
 # have a libcudart in a standard location then you need
@@ -126,7 +126,7 @@ INTEL_VERSION_A=2017.2.174
 INTEL_VERSION_B=2018.1.163
 BISON_VERSION=3.0.4
 PAPI_VERSION=5.5.1
-PYTHON_VERSION=3.6
+PYTHON3_VERSION=3.6
 ACE_VERSION=6.4.5
 FLEX_VERSION=2.5.39
 BOOST_VERSION=1.65.1
@@ -136,7 +136,8 @@ LUA_VERSION=5.1
 
 PACKAGE_FLEX=flex
 PACKAGE_BISON=bison
-PACKAGE_PYTHON=python3
+PACKAGE_PYTHON3=python3
+PACKAGE_PYTHON=python
 PACKAGE_BOOST=libboost-all-dev
 PACKAGE_CEREAL=libcereal-dev
 PACKAGE_ACE=libace-dev
@@ -144,6 +145,7 @@ PACKAGE_PAPI=libpapi-dev
 PACKAGE_LIBREADLINE=libreadline-dev
 PACKAGE_LUA=liblua5.3-dev
 PACKAGE_MAKEINFO=texinfo
+PACKAGE_GRAPHVIZ=graphviz
 
 #############################################################
 #                                                           #
@@ -367,11 +369,11 @@ installBison() {
 	esac
 }
 
-installPython() {
-	vercomp $(packageversion ${PACKAGE_PYTHON}) $PYTHON_VERSION
+installPython3() {
+	vercomp $(packageversion ${PACKAGE_PYTHON3}) $PYTHON3_VERSION
 	case $? in
 		0) 
-			sudo apt-get install ${PACKAGE_PYTHON} -y
+			sudo apt-get install ${PACKAGE_PYTHON3} -y
 			;;
 		*) 
 			wget -c ${DOWNLOAD_PYTHON}
@@ -431,6 +433,16 @@ installPapi() {
 
 installLibreadline() {
 	echo "To install libreadline, execute \"sudo apt-get install ${PACKAGE_LIBREADLINE} -y \""
+	exit 1
+}
+
+installDot() {
+	echo "To install dot, execute \"sudo apt-get install ${PACKAGE_DOT} -y \""
+	exit 1
+}
+
+installPython() {
+	echo "To install python2, execute \"sudo apt-get install ${PACKAGE_PYTHON} -y \""
 	exit 1
 }
 
@@ -494,6 +506,10 @@ if [ "$COMPILER" = "intel" ]; then
 	[[ $INTEL_VERSION_INSTALLED =~ ([0-9]+\.){2}[0-9]+ ]]
 	INTEL_VERSION_INSTALLED="${BASH_REMATCH[0]}"
 fi
+
+command -v mpirun >/dev/null 2>&1 || { echo >&2 "[Error] MPI is required. Please install it first (e.g. OpenMPI). Aborting."; exit 1; }
+
+command -v mpicc >/dev/null 2>&1 || { echo >&2 "[Error] MPI is required. Please install it first (e.g. OpenMPI). Aborting."; exit 1; }
 
 command -v bison >/dev/null 2>&1 || { echo >&2 "[Error] Bison $BISON_VERSION is required. Please install it first. Aborting."; installBison; }
 BISON_VERSION_INSTALLED=$(bison --version)
@@ -597,11 +613,13 @@ CMAKE_VERSION_INSTALLED=$(cmake --version)
 [[ $CMAKE_VERSION_INSTALLED =~ ([0-9]+\.){2}[0-9]+ ]]
 CMAKE_VERSION_INSTALLED="${BASH_REMATCH[0]}"
 
+command -v python >/dev/null 2>&1 || { echo >&2 "[Error] Python2 is required for x86_adapt. Please install it first, if necessary. Aborting."; installPython; }
 
-command -v python3 >/dev/null 2>&1 || { echo >&2 "[Error] Python $PYTHON_VERSION or higher is required. Please install it first. Aborting."; installPython; }
-PYTHON_VERSION_INSTALLED=$(python3 --version)
-[[ $PYTHON_VERSION_INSTALLED =~ ([0-9]+\.){2}[0-9]+ ]]
-PYTHON_VERSION_INSTALLED="${BASH_REMATCH[0]}"
+
+command -v python3 >/dev/null 2>&1 || { echo >&2 "[Error] Python $PYTHON3_VERSION or higher is required. Please install it first. Aborting."; installPython3; }
+PYTHON3_VERSION_INSTALLED=$(python3 --version)
+[[ $PYTHON3_VERSION_INSTALLED =~ ([0-9]+\.){2}[0-9]+ ]]
+PYTHON3_VERSION_INSTALLED="${BASH_REMATCH[0]}"
 
 command -v flex >/dev/null 2>&1 || { echo >&2 "[Error] Flex $FLEX_VERSION is required. Installing it now. "; installFlex; }
 FLEX_VERSION_INSTALLED=$(flex --version)
@@ -609,6 +627,8 @@ FLEX_VERSION_INSTALLED=$(flex --version)
 FLEX_VERSION_INSTALLED="${BASH_REMATCH[0]}"
 
 command -v makeinfo >/dev/null 2>&1 || { echo >&2 "Makeinfo is required. Installing it."; installMakeinfo; }
+
+command -v 'dot -V' >/dev/null 2>&1 || { echo >&2 "Dot is required. Installing it."; installDot; }
 
 WARNING=false
 
@@ -830,7 +850,7 @@ case $? in
 		;;
 esac
 
-vercomp $PYTHON_VERSION_INSTALLED $PYTHON_VERSION
+vercomp $PYTHON3_VERSION_INSTALLED $PYTHON3_VERSION
 case $? in
 	0) 
 		OP="the same"
@@ -840,8 +860,8 @@ case $? in
 		;;
 	2)
 		OP="older"
-		echo "[Warning] Your Python version ($PYTHON_VERSION_INSTALLED) is $OP than the recommendation ($PYTHON_VERSION). Installing right version"
-		installPython
+		echo "[Warning] Your Python version ($PYTHON3_VERSION_INSTALLED) is $OP than the recommendation ($PYTHON3_VERSION). Installing right version"
+		installPython3
 		WARNING=true
 		;;
 esac
@@ -942,8 +962,11 @@ cd build
 
 CONFIGURE_SCOREP="../configure '--prefix=$INSTALLATION_PATH_SCOREP' \
 	'--enable-backend-test-runs' \
-	'--with-nocross-compiler-suite=$COMPILER' \
-	'--with-mpi=$MPI'"
+	'--with-nocross-compiler-suite=$COMPILER'"
+
+if [[ -n $MPI ]]; then
+	CONFIGURE_SCOREP="$CONFIGURE_SCOREP '--with-mpi=$MPI'"
+fi
 
 if [[ -n $CUDA ]]; then
 	CONFIGURE_SCOREP="$CONFIGURE_SCOREP '--with-libcudart=$CUDA'"
