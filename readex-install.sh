@@ -82,7 +82,7 @@ DOWNLOAD_FLEX=https://netcologne.dl.sourceforge.net/project/flex/flex-2.5.39.tar
 DOWNLOAD_BISON=https://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
 DOWNLOAD_CEREAL=https://github.com/USCiLab/cereal/archive/v1.2.1.tar.gz
 DOWNLOAD_PEEP=https://github.com/score-p/scorep_plugin_x86_energy.git
-DOWNLOAD_MODULE=https://netcologne.dl.sourceforge.net/projects/modules/files/Modules/modules-4.1.4/modules-4.1.4.tar.gz
+DOWNLOAD_MODULE=https://fossies.org/linux/misc/modules-4.1.4.tar.gz
 
 ARCHIVE_FILE_SCOREP=${DOWNLOAD_SCOREP##*/}
 ARCHIVE_FILE_PERISCOPE=${DOWNLOAD_PERISCOPE##*/}
@@ -145,7 +145,7 @@ PACKAGE_PAPI=libpapi-dev
 PACKAGE_LIBREADLINE=libreadline-dev
 PACKAGE_LUA=liblua5.3-dev
 PACKAGE_MAKEINFO=texinfo
-PACKAGE_GRAPHVIZ=graphviz
+PACKAGE_DOT=graphviz
 
 #############################################################
 #                                                           #
@@ -427,22 +427,22 @@ installMakeinfo() {
 }
 
 installPapi() {
-	echo "To install PAPI, execute \"sudo apt-get install ${PACKAGE_PAPI} -y \""
+	echo "To install PAPI, execute \"sudo apt-get install ${PACKAGE_PAPI} -y\""
 	exit 1
 }
 
 installLibreadline() {
-	echo "To install libreadline, execute \"sudo apt-get install ${PACKAGE_LIBREADLINE} -y \""
+	echo "To install libreadline, execute \"sudo apt-get install ${PACKAGE_LIBREADLINE} -y\""
 	exit 1
 }
 
 installDot() {
-	echo "To install dot, execute \"sudo apt-get install ${PACKAGE_DOT} -y \""
+	echo "To install dot, execute \"sudo apt-get install ${PACKAGE_DOT} -y\""
 	exit 1
 }
 
 installPython() {
-	echo "To install python2, execute \"sudo apt-get install ${PACKAGE_PYTHON} -y \""
+	echo "To install python2, execute \"sudo apt-get install ${PACKAGE_PYTHON} -y\""
 	exit 1
 }
 
@@ -628,7 +628,7 @@ FLEX_VERSION_INSTALLED="${BASH_REMATCH[0]}"
 
 command -v makeinfo >/dev/null 2>&1 || { echo >&2 "Makeinfo is required. Installing it."; installMakeinfo; }
 
-command -v 'dot -V' >/dev/null 2>&1 || { echo >&2 "Dot is required. Installing it."; installDot; }
+command -v dot -V >/dev/null 2>&1 || { echo >&2 "Dot is required. Installing it."; installDot; }
 
 WARNING=false
 
