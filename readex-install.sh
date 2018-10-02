@@ -528,7 +528,7 @@ else
 fi
 
 if [[ -n $BOOST_INCLUDE ]]; then
-	BOOST_INCLUDE_PATH="$BOOST_INCLUDE/version.hpp"
+	BOOST_INCLUDE_PATH="$BOOST_INCLUDE/boost/version.hpp"
 else
 	BOOST_INCLUDE_PATH="/usr/include/boost/version.hpp"
 fi
@@ -550,6 +550,7 @@ if [ -f ${BOOST_INCLUDE_PATH} ]; then
 else
 	echo "[Error] BOOST $BOOST_VERSION is required. Installing now..."
 	installBoost
+	BOOST_VERSION_INSTALLED=$BOOST_VERSION
 fi
 
 if [[ -n $ACE_LIB ]]; then
@@ -565,6 +566,7 @@ if [ -f ${ACE_LIB_PATH} ]; then
 else
 	echo "ACE $ACE_VERSION is required. Installing it now."
 	installACE
+	ACE_VERSION_INSTALLED=$ACE_VERSION
 fi
 
 if [ ! -f /usr/lib/x86_64-linux-gnu/libreadline.so ]; then
