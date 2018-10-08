@@ -462,17 +462,19 @@ installModule() {
 			exit 1;
 		fi
 		. $INSTALLATION_PATH/Module/init/profile.sh
-		. $INSTALLATION_PATH/Module/init/profile.csh
+		#. $INSTALLATION_PATH/Module/init/profile.csh
 		sudo ln -s $INSTALLATION_PATH/Module/init/profile.sh /etc/profile.d/modules.sh
 		sudo ln -s $INSTALLATION_PATH/Module/init/profile.csh /etc/profile.d/modules.csh
+		echo "source $INSTALLATION_PATH/Module/init/bash" >> ~/.bashrc
+		echo "source $INSTALLATION_PATH/Module/init/csh" >> ~/.cshrc
 		buildModulefile
 		mkdir $INSTALLATION_PATH/modulefiles/Readex
-		mv ${MPI}_${COMPILER_PATH} $INSTALLATION_PATH/modulefiles/Readex/${MPI}_${COMPILER_PATH}
+		mv Readex $INSTALLATION_PATH/modulefiles/Readex/Readex_${MPI}_${COMPILER_PATH}
 		cd ../
 }
 
 buildModulefile() {
-	touch ${MPI}_$COMPILER_PATH
+	touch Readex
 	echo "#%Module1.0######################################################################" >> Readex
 	echo "## Readex modulefile" >> Readex
 	echo "proc ModulesHelp { } {" >> Readex
@@ -511,11 +513,7 @@ command -v mpirun >/dev/null 2>&1 || { echo >&2 "[Error] MPI is required. Please
 
 command -v mpicc >/dev/null 2>&1 || { echo >&2 "[Error] MPI is required. Please install it first (e.g. OpenMPI). Aborting."; exit 1; }
 
-command -v bison >/dev/null 2>&1 || { echo >&2 "[Error] Bison $BISON_VERSION is required. Please install it first. Aborting."; installBison; }
-BISON_VERSION_INSTALLED=$(bison --version)
-[[ $BISON_VERSION_INSTALLED =~ ([0-9]+\.){2}[0-9]+ ]]
-BISON_VERSION_INSTALLED="${BASH_REMATCH[0]}"
-
+command -v makeinfo >/dev/null 2>&1 || { echo >&2 "Makeinfo is required. Installing it."; installMakeinfo; }
 
 LUA_VERSION_INSTALLED=$(dpkg --get-selections | grep -E liblua.\..-dev | cut -c 7-9)
 
@@ -526,7 +524,6 @@ else
 	echo "[Error] Lua $LUA_VERSION or higher is required. Please install it first. Aborting."
 	installLua;
 fi
-
 
 if [[ -n $PAPI_LIB ]]; then
 	PAPI_LIB_PATH="$PAPI_LIB/libpapi.so"
@@ -542,6 +539,20 @@ else
 	echo "[Error] PAPI $PAPI_VERSION or higher is required. Please install it first. Aborting."
 	installPapi;
 fi
+
+if [ ! -f /usr/lib/x86_64-linux-gnu/libreadline.so ]; then
+	echo "libreadline is required. Installing it now."
+	installLibreadline
+fi
+
+command -v python >/dev/null 2>&1 || { echo >&2 "[Error] Python2 is required for x86_adapt. Please install it first, if necessary. Aborting."; installPython; }
+
+command -v dot -V >/dev/null 2>&1 || { echo >&2 "Dot is required. Please install it first. Aborting."; installDot; }
+
+command -v bison >/dev/null 2>&1 || { echo >&2 "[Error] Bison $BISON_VERSION is required. Please install it first. Aborting."; installBison; }
+BISON_VERSION_INSTALLED=$(bison --version)
+[[ $BISON_VERSION_INSTALLED =~ ([0-9]+\.){2}[0-9]+ ]]
+BISON_VERSION_INSTALLED="${BASH_REMATCH[0]}"
 
 if [[ -n $BOOST_INCLUDE ]]; then
 	BOOST_INCLUDE_PATH="$BOOST_INCLUDE/boost/version.hpp"
@@ -585,11 +596,6 @@ else
 	ACE_VERSION_INSTALLED=$ACE_VERSION
 fi
 
-if [ ! -f /usr/lib/x86_64-linux-gnu/libreadline.so ]; then
-	echo "libreadline is required. Installing it now."
-	installLibreadline
-fi
-
 if [[ -n $CEREAL_INCLUDE ]]; then
 	CEREAL_INCLUDE_PATH="$CEREAL_INCLUDE/cereal.hpp"
 else
@@ -606,15 +612,10 @@ else
 	CEREAL_VERSION_INSTALLED=0
 fi
 
-
-
 command -v cmake >/dev/null 2>&1 || { echo >&2 "[Error] CMake $CMAKE_VERSION or higher is required. Now installing the required version."; installCmake; }
 CMAKE_VERSION_INSTALLED=$(cmake --version) 
 [[ $CMAKE_VERSION_INSTALLED =~ ([0-9]+\.){2}[0-9]+ ]]
 CMAKE_VERSION_INSTALLED="${BASH_REMATCH[0]}"
-
-command -v python >/dev/null 2>&1 || { echo >&2 "[Error] Python2 is required for x86_adapt. Please install it first, if necessary. Aborting."; installPython; }
-
 
 command -v python3 >/dev/null 2>&1 || { echo >&2 "[Error] Python $PYTHON3_VERSION or higher is required. Please install it first. Aborting."; installPython3; }
 PYTHON3_VERSION_INSTALLED=$(python3 --version)
@@ -625,10 +626,6 @@ command -v flex >/dev/null 2>&1 || { echo >&2 "[Error] Flex $FLEX_VERSION is req
 FLEX_VERSION_INSTALLED=$(flex --version)
 [[ $FLEX_VERSION_INSTALLED =~ ([0-9]+\.){2}[0-9]+ ]]
 FLEX_VERSION_INSTALLED="${BASH_REMATCH[0]}"
-
-command -v makeinfo >/dev/null 2>&1 || { echo >&2 "Makeinfo is required. Installing it."; installMakeinfo; }
-
-command -v dot -V >/dev/null 2>&1 || { echo >&2 "Dot is required. Installing it."; installDot; }
 
 WARNING=false
 
@@ -1279,7 +1276,7 @@ while [ "$DECISION" != "n" ] && [ "$DECISION" != "y" ]; do
 	echo "Do you want to clean the current directory? (y|n)"
 	read DECISION
 
-	if [ "$DECISION" = "n"]; then
+	if [ "$DECISION" = "n" ]; then
 		exit 1;
 	fi
 
