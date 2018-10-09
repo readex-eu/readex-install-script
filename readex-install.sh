@@ -82,7 +82,6 @@ DOWNLOAD_FLEX=https://netcologne.dl.sourceforge.net/project/flex/flex-2.5.39.tar
 DOWNLOAD_BISON=https://ftp.gnu.org/gnu/bison/bison-3.0.4.tar.gz
 DOWNLOAD_CEREAL=https://github.com/USCiLab/cereal/archive/v1.2.1.tar.gz
 DOWNLOAD_PEEP=https://github.com/score-p/scorep_plugin_x86_energy.git
-DOWNLOAD_MODULE=https://fossies.org/linux/misc/modules-4.1.4.tar.gz
 
 ARCHIVE_FILE_SCOREP=${DOWNLOAD_SCOREP##*/}
 ARCHIVE_FILE_PERISCOPE=${DOWNLOAD_PERISCOPE##*/}
@@ -98,7 +97,6 @@ ARCHIVE_FILE_FLEX=${DOWNLOAD_FLEX##*/}
 ARCHIVE_FILE_BISON=${DOWNLOAD_BISON##*/}
 ARCHIVE_FILE_PYTHON=${DOWNLOAD_PYTHON##*/}
 ARCHIVE_FILE_CEREAL=${DOWNLOAD_CEREAL##*/}
-ARCHIVE_FILE_MODULE=${DOWNLOAD_MODULE##*/}
 
 
 DIR_SCOREP=${ARCHIVE_FILE_SCOREP%.tar.gz}
@@ -116,7 +114,6 @@ DIR_FLEX=${ARCHIVE_FILE_FLEX%.tar.gz}
 DIR_PYTHON=cpython-3.7.0
 DIR_CEREAL=cereal-1.2.1
 DIR_BISON=${ARCHIVE_FILE_BISON%.tar.gz}
-DIR_MODULE=${ARCHIVE_FILE_MODULE%.tar.gz}
 
 GCC_VERSION_A=6.3.0
 GCC_VERSION_B=7.1.0
@@ -446,52 +443,26 @@ installPython() {
 	exit 1
 }
 
-installModule() {
-		TCL_VERSION_INSTALLED=$(ls /usr/lib/x86_64-linux-gnu | grep libtcl | head -n 1)
-
-		if [[ ! -n $TCL_VERSION_INSTALLED ]]; then
-			sudo apt-get install tcl-devel -y
-		fi
-		wget -c ${DOWNLOAD_MODULE}
-		rm -rf $DIR_MODULE
-		tar -xzf $ARCHIVE_FILE_MODULE
-		cd $DIR_MODULE
-		./configure --prefix=$INSTALLATION_PATH/Module --modulefilesdir=$INSTALLATION_PATH/modulefiles
-		make && make install
-		if [ $? != 0 ]; then
-			exit 1;
-		fi
-		. $INSTALLATION_PATH/Module/init/profile.sh
-		#. $INSTALLATION_PATH/Module/init/profile.csh
-		sudo ln -s $INSTALLATION_PATH/Module/init/profile.sh /etc/profile.d/modules.sh
-		sudo ln -s $INSTALLATION_PATH/Module/init/profile.csh /etc/profile.d/modules.csh
-		echo "source $INSTALLATION_PATH/Module/init/bash" >> ~/.bashrc
-		echo "source $INSTALLATION_PATH/Module/init/csh" >> ~/.cshrc
-		buildModulefile
-		mkdir $INSTALLATION_PATH/modulefiles/Readex
-		mv Readex $INSTALLATION_PATH/modulefiles/Readex/Readex_${MPI}_${COMPILER_PATH}
-		cd ../
-}
-
 buildModulefile() {
-	touch Readex
-	echo "#%Module1.0######################################################################" >> Readex
-	echo "## Readex modulefile" >> Readex
-	echo "proc ModulesHelp { } {" >> Readex
-    echo "	puts stderr \"\\tThe Dot Module\\n\"" >> Readex
-    echo "	puts stderr \"\\tThis module adds the current working directory to your path.\"" >> Readex
-	echo "}" >> Readex
-	echo "module-whatis   \"adds all necessary directories to your PATH and LD_LIBRARY_PATH environment variable\" " >> Readex
-	echo "append-path     PATH            $INSTALLATION_PATH_SCOREP/bin" >> Readex
-	echo "append-path     PATH            $INSTALLATION_PATH_PERISCOPE/bin" >> Readex 
-	echo "append-path     PATH 	          $INSTALLATION_PATH_RRL/bin" >> Readex 
-	echo "append-path     PATH            $INSTALLATION_PATH_ATPS/bin" >> Readex
-	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_SCOREP/lib" >> Readex
-	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_PERISCOPE/lib" >> Readex
-	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_RRL/lib" >> Readex 
-	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_PCPS/lib" >> Readex
-	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_ATPS/lib" >> Readex
-	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_CLUSTER_PREDICTION/lib" >> Readex
+	touch Readex_${MPI}_$COMPILER
+	echo "#%Module1.0######################################################################" >> Readex_${MPI}_$COMPILER
+	echo "## Readex modulefile" >> Readex_${MPI}_$COMPILER
+	echo "proc ModulesHelp { } {" >> Readex_${MPI}_$COMPILER
+    echo "	puts stderr \"\\tThe Dot Module\\n\"" >> Readex_${MPI}_$COMPILER
+    echo "	puts stderr \"\\tThis module adds the current working directory to your path.\"" >> Readex_${MPI}_$COMPILER
+	echo "}" >> Readex_${MPI}_$COMPILER
+	echo "module-whatis   \"adds all necessary directories to your PATH and LD_LIBRARY_PATH environment variable\" " >> Readex_${MPI}_$COMPILER
+	echo "append-path     PATH            $INSTALLATION_PATH_SCOREP/bin" >> Readex_${MPI}_$COMPILER
+	echo "append-path     PATH            $INSTALLATION_PATH_PERISCOPE/bin" >> Readex_${MPI}_$COMPILER
+	echo "append-path     PATH 	          $INSTALLATION_PATH_RRL/bin" >> Readex_${MPI}_$COMPILER
+	echo "append-path     PATH            $INSTALLATION_PATH_ATPS/bin" >> Readex_${MPI}_$COMPILER
+	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_SCOREP/lib" >> Readex_${MPI}_$COMPILER
+	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_PERISCOPE/lib" >> Readex_${MPI}_$COMPILER
+	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_RRL/lib" >> Readex_${MPI}_$COMPILER
+	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_PCPS/lib" >> Readex_${MPI}_$COMPILER
+	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_ATPS/lib" >> Readex_${MPI}_$COMPILER
+	echo "append-path     LD_LIBRARY_PATH $INSTALLATION_PATH_CLUSTER_PREDICTION/lib" >> Readex_${MPI}_$COMPILER
+	MODULEFILE_LOCATION=$(pwd)/Readex_${MPI}_$COMPILER
 }
 
 
@@ -1251,20 +1222,9 @@ while [ "$DECISION" != "n" ] && [ "$DECISION" != "no" ] && [ "$DECISION" != "y" 
 	fi
 
 	if [ "$DECISION" = "y" ];then
-		DECISION_INSTALL=
-		while [ "$DECISION_INSTALL" != "n" ] && [ "$DECISION_INSTALL" != "no" ] && [ "$DECISION_INSTALL" != "y" ] && [ "$DECISION_INSTALL" != "yes" ]; do
-			echo "Do you have Environment Modules already installed and configured? (yes|no)"
-			read DECISION_INSTALL
-			if [ "$DECISION_INSTALL" = "y" ] || [ "$DECISION_INSTALL" = "yes" ];then
-				echo "A modulefile in the current work directory is provided."
-				break
-			fi
-			if [ "$DECISION_INSTALL" = "n" ] || [ "$DECISION_INSTALL" = "no" ];then
-				echo "Installing Environment variables now."
-				installModule
-				break
-			fi
-		done
+			echo "To install Environment modules, you can use the provided packages and install it with: \"sudo apt-get install environment-modules\" or download the source code and install it manually."
+			buildModulefile
+			echo "The module file is in the current work directory: $MODULEFILE_LOCATION"
 	fi
 		break
 done
@@ -1295,7 +1255,6 @@ while [ "$DECISION" != "n" ] && [ "$DECISION" != "y" ]; do
 		rm -f $ARCHIVE_FILE_CEREAL
 		rm -f $ARCHIVE_FILE_FLEX
 		rm -f $ARCHIVE_FILE_PYTHON
-		rm -f $ARCHIVE_FILE_MODULE
 
 
 		rm -rf $DIR_SCOREP
@@ -1314,7 +1273,6 @@ while [ "$DECISION" != "n" ] && [ "$DECISION" != "y" ]; do
 		rm -rf $DIR_PYTHON
 		rm -rf $DIR_PEEP
 		rm -rf x86_adapt
-		rm -rf $DIR_MODULE
 	fi
 
 done
